@@ -1,0 +1,13 @@
+@import "tailwindcss";
+
+@theme {
+    --color-bounsic-gray: #0F0F0F;
+  }
+.scroll-hidden::-webkit-scrollbar {
+  display: none;
+}
+
+.scroll-hidden {
+  scrollbar-width: none;
+  -ms-overflow-style: none;
+}
