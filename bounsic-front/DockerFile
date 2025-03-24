@@ -1,0 +1,25 @@
+# Usa la imagen oficial de Bun
+FROM oven/bun:latest AS builder
+ 
+WORKDIR /app
+COPY . .
+ 
+# Instala dependencias y construye
+RUN bun install
+RUN bun run build
+ 
+# Imagen final más ligera
+FROM oven/bun:latest
+WORKDIR /app
+ 
+# Copia solo lo necesario
+COPY --from=builder /app/node_modules ./node_modules
+COPY --from=builder /app/dist ./dist
+COPY --from=builder /app/package.json .
+COPY --from=builder /app/server.js .  # Asegúrate de tener este archivo
+ 
+# Puerto expuesto (debe coincidir con tu server.js)
+EXPOSE 3000
+ 
+# Comando de inicio
+CMD ["bun", "run", "start"]
