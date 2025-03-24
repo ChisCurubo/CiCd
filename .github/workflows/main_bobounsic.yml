@@ -63,6 +63,11 @@ jobs:
     environment:
       name: 'Production'
       url: ${{ steps.deploy-to-webapp.outputs.webapp-url }}
+    
+    # ESTOS PERMISOS SON CRUCIALES
+    permissions:
+      contents: read
+      id-token: write  # ← Esto soluciona el error de login
 
     steps:
       - name: Download artifact
