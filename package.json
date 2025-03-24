@@ -27,7 +27,7 @@
         "install": "bun run install:frontend && bun run install:backend",
         "start:frontend": "cd bounsic-front && bun run start",
         "start:backend": "cd bounsic-back && powershell -Command \"venv\\Scripts\\activate;python -m app.main\"",
-        "start": "concurrently \"bun run start:frontend\" \"bun run start:backend\""
+        "start": "concurrently \"bun run start:frontend\" \"bun run start:backend\"",
         "build:front": "cd bounsic-front && bun run build"
     },
     "dependencies": {
