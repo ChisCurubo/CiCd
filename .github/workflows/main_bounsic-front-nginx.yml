@@ -1,7 +1,4 @@
-# Docs for the Azure Web Apps Deploy action: https://github.com/Azure/webapps-deploy
-# More GitHub Actions for Azure: https://github.com/Azure/actions
-
-name: Build and deploy container app to Azure Web App - bounsic-front-nginx
+name: Build and Deploy to Azure Web Apps
 
 on:
   push:
@@ -10,42 +7,56 @@ on:
   workflow_dispatch:
 
 jobs:
-  build:
-    runs-on: 'ubuntu-latest'
-
+  build-and-push:
+    runs-on: ubuntu-latest
     steps:
-    - uses: actions/checkout@v2
+      - name: Checkout code
+        uses: actions/checkout@v3
 
-    - name: Set up Docker Buildx
-      uses: docker/setup-buildx-action@v2
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v2
 
-    - name: Log in to registry
-      uses: docker/login-action@v2
-      with:
-        registry: https://bounsiccontainerregistery.azurecr.io/
-        username: ${{ secrets.AzureAppService_ContainerUsername_712540b034984e568f19540cbdb646f1 }}
-        password: ${{ secrets.AzureAppService_ContainerPassword_48b0a9888467461f9980b8a659b9dec2 }}
+      - name: Log in to Azure Container Registry
+        uses: docker/login-action@v2
+        with:
+          registry: bounsiccontainerregistery.azurecr.io
+          username: ${{ secrets.AZUREAPPSERVICE_CONTAINERUSERNAME_712540B034984E568F19540CBDB646F1 }}
+          password: ${{ secrets.AZUREAPPSERVICE_CONTAINERPASSWORD_48B0A9888467461F9980B8A659B9DEC2 }}
 
-    - name: Build and push container image to registry
-      uses: docker/build-push-action@v3
-      with:
-        push: true
-        tags: bounsiccontainerregistery.azurecr.io/${{ secrets.AzureAppService_ContainerUsername_712540b034984e568f19540cbdb646f1 }}/bounsic-front-nginx:${{ github.sha }}
-        file: ./Dockerfile
+      - name: Build and push backend (Node.js) image
+        uses: docker/build-push-action@v3
+        with:
+          context: .
+          file: Dockerfile.node
+          push: true
+          tags: bounsiccontainerregistery.azurecr.io/bounsic-front-node:${{ github.sha }}
+
+      - name: Build and push frontend (Nginx) image
+        uses: docker/build-push-action@v3
+        with:
+          context: .
+          file: Dockerfile.nginx
+          push: true
+          tags: bounsiccontainerregistery.azurecr.io/bounsic-front-nginx:${{ github.sha }}
 
   deploy:
     runs-on: ubuntu-latest
-    needs: build
-    environment:
-      name: 'production'
-      url: ${{ steps.deploy-to-webapp.outputs.webapp-url }}
-
+    needs: build-and-push
     steps:
-    - name: Deploy to Azure Web App
-      id: deploy-to-webapp
-      uses: azure/webapps-deploy@v2
-      with:
-        app-name: 'bounsic-front-nginx'
-        slot-name: 'production'
-        publish-profile: ${{ secrets.AzureAppService_PublishProfile_40660e4acb984f97b4e7395743ae5a79 }}
-        images: 'bounsiccontainerregistery.azurecr.io/${{ secrets.AzureAppService_ContainerUsername_712540b034984e568f19540cbdb646f1 }}/bounsic-front-nginx:${{ github.sha }}'
+      - name: Deploy Backend (Node.js) to Azure Web App
+        id: deploy-backend
+        uses: azure/webapps-deploy@v2
+        with:
+          app-name: 'bounsic-front-node'
+          slot-name: 'production'
+          publish-profile: ${{ secrets.AZURE_APP_PUBLISH_PROFILE_NODE }}
+          images: 'bounsiccontainerregistery.azurecr.io/bounsic-front-node:${{ github.sha }}'
+
+      - name: Deploy Frontend (Nginx) to Azure Web App
+        id: deploy-frontend
+        uses: azure/webapps-deploy@v2
+        with:
+          app-name: 'bounsic-front-nginx'
+          slot-name: 'production'
+          publish-profile: ${{ secrets.AZUREAPPSERVICE_PUBLISHPROFILE_40660E4ACB984F97B4E7395743AE5A79 }}
+          images: 'bounsiccontainerregistery.azurecr.io/bounsic-front-nginx:${{ github.sha }}'
