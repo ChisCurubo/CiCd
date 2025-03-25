@@ -27,7 +27,7 @@ jobs:
         uses: docker/build-push-action@v3
         with:
           context: .
-          file: Dockerfile.node
+          file: ./bounsic-front/Dockerfile.node
           push: true
           tags: bounsiccontainerregistery.azurecr.io/bounsic-front-node:${{ github.sha }}
 
@@ -35,7 +35,7 @@ jobs:
         uses: docker/build-push-action@v3
         with:
           context: .
-          file: Dockerfile.nginx
+          file: ./bounsic-front/Dockerfile.nginx
           push: true
           tags: bounsiccontainerregistery.azurecr.io/bounsic-front-nginx:${{ github.sha }}
 
