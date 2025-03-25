@@ -12,23 +12,10 @@ import { of } from 'rxjs';
   imports: [RouterModule, CommonModule],
   changeDetection: ChangeDetectionStrategy.OnPush
 })
-export class LandingNavBarComponent implements OnInit {
+export class LandingNavBarComponent  {
   isMobileMenuOpen = false;
-  private miService = inject(ApiService);
-  datos: string = '';
-  
-  ngOnInit() {
-    this.miService.getData().pipe(
-      catchError(error => {
-        console.error('Error obteniendo datos:', error);
-        this.datos ="err"
-        return of('');
-      })
-    ).subscribe(response => {
-      this.datos = response;
-      if (this.datos) console.log(this.datos); 
-    });
-  }
+
+
   
   toggleMobileMenu() {
     this.isMobileMenuOpen = !this.isMobileMenuOpen;

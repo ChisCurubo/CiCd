@@ -1,0 +1,19 @@
+# Usa la imagen oficial de Bun como base
+FROM oven/bun:latest
+
+# Establece el directorio de trabajo
+WORKDIR /app
+
+# Copia los archivos del servidor
+COPY dist/bounsic-front/server /app
+COPY package.json /app
+COPY bun.lock /app
+
+# Instala las dependencias usando Bun
+RUN bun install
+
+# Expone el puerto en el que el servidor escucharÃ¡
+EXPOSE 4000
+
+# Comando para iniciar el servidor
+CMD ["bun", "run", "server.mjs"]

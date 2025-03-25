@@ -78,10 +78,10 @@ export class SafeChoiceListComponent implements OnInit{
   }
 
   private updateMaxSongsToShow() {
-    if (window.innerWidth < 640) {
-      this.maxSongsToShow = 3;
-    } else {
-      this.maxSongsToShow = 7;
-    }
+    // if (window.innerWidth < 640) {
+    //   this.maxSongsToShow = 3;
+    // } else {
+    //   this.maxSongsToShow = 7;
+    // }
   }
 }
