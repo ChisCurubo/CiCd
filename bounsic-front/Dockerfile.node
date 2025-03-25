@@ -5,7 +5,7 @@ FROM oven/bun:latest
 WORKDIR /app
 
 # Copia los archivos del servidor
-COPY dist/bounsic-front/server /app
+COPY ./bounsic-front/dist/bounsic-front/server /app
 COPY ./bounsic-front/package.json /app
 COPY ./bounsic-front/bun.lock /app
 
