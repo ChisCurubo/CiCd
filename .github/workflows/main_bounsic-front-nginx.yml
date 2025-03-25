@@ -16,15 +16,15 @@ jobs:
       - name: Install Bun
         run: |
           curl -fsSL https://bun.sh/install | bash
-          echo 'export BUN_INSTALL="$HOME/.bun"' >> $GITHUB_ENV
-          echo 'export PATH="$BUN_INSTALL/bin:$PATH"' >> $GITHUB_ENV
+          echo "BUN_INSTALL=$HOME/.bun" >> $GITHUB_ENV
+          echo "$HOME/.bun/bin" >> $GITHUB_PATH
         shell: bash
 
       - name: Install dependencies and build frontend
+        working-directory: ./bounsic-front
         run: |
           bun install
           bun run build
-        working-directory: ./bounsic-front
 
       - name: Verify build output
         run: ls -R ./bounsic-front/dist
