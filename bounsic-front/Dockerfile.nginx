@@ -1,6 +1,6 @@
 FROM nginx:alpine
 
-COPY dist/bounsic-front/browser /usr/share/nginx/html
+COPY ./bounsic-front/dist/bounsic-front/browser /usr/share/nginx/html
 COPY ./bounsic-front/nginx.conf /etc/nginx/nginx.conf
 
 EXPOSE 80
