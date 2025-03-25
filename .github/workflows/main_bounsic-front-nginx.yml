@@ -13,47 +13,55 @@ jobs:
       - name: Checkout code
         uses: actions/checkout@v3
 
+      # 🔹 Instalar Bun y agregarlo al PATH
       - name: Install Bun
         run: |
           curl -fsSL https://bun.sh/install | bash
           echo "BUN_INSTALL=$HOME/.bun" >> $GITHUB_ENV
-          echo "$HOME/.bun/bin" >> $GITHUB_PATH
+          echo "PATH=$HOME/.bun/bin:$PATH" >> $GITHUB_ENV
+          source $HOME/.bashrc
         shell: bash
 
+      # 🔹 Verificar que los archivos existen antes del build
+      - name: Verify required files
+        run: |
+          ls -l ./bounsic-front/package.json || echo "ERROR: package.json no encontrado"
+          ls -l ./bounsic-front/bun.lock || echo "ERROR: bun.lock no encontrado"
+          ls -R ./bounsic-front/dist || echo "ERROR: La carpeta dist no existe"
+
+      # 🔹 Instalar dependencias y construir el frontend
       - name: Install dependencies and build frontend
         working-directory: ./bounsic-front
         run: |
           bun install
           bun run build
 
-      - name: Verify build output
-        run: ls -R ./bounsic-front/dist
-
-      - name: Verify bun.lock file
-        run: ls -l ./bounsic-front/bun.lock || echo "bun.lock no encontrado"
-        
+      # 🔹 Configurar Docker Buildx
       - name: Set up Docker Buildx
         uses: docker/setup-buildx-action@v2
 
+      # 🔹 Iniciar sesión en Azure Container Registry
       - name: Log in to Azure Container Registry
         uses: docker/login-action@v2
         with:
           registry: bounsiccontainerregistery.azurecr.io
-          username: ${{ secrets.AZUREAPPSERVICE_CONTAINERUSERNAME_712540B034984E568F19540CBDB646F1 }}
-          password: ${{ secrets.AZUREAPPSERVICE_CONTAINERPASSWORD_48B0A9888467461F9980B8A659B9DEC2 }}
+          username: ${{ secrets.AZUREAPPSERVICE_CONTAINERUSERNAME }}
+          password: ${{ secrets.AZUREAPPSERVICE_CONTAINERPASSWORD }}
 
+      # 🔹 Construir y subir imagen del backend
       - name: Build and push backend (Node.js) image
         uses: docker/build-push-action@v3
         with:
-          context: ./bounsic-front  # 🔹 Asegura que usa la carpeta correcta
+          context: .  # 🔹 Usa la raíz del repo para evitar problemas de rutas
           file: ./bounsic-front/Dockerfile.node
           push: true
           tags: bounsiccontainerregistery.azurecr.io/bounsic-front-node:${{ github.sha }}
 
+      # 🔹 Construir y subir imagen del frontend
       - name: Build and push frontend (Nginx) image
         uses: docker/build-push-action@v3
         with:
-          context: ./bounsic-front  # 🔹 Asegura que usa la carpeta correcta
+          context: .  # 🔹 Usa la raíz del repo para evitar problemas de rutas
           file: ./bounsic-front/Dockerfile.nginx
           push: true
           tags: bounsiccontainerregistery.azurecr.io/bounsic-front-nginx:${{ github.sha }}
@@ -62,6 +70,7 @@ jobs:
     runs-on: ubuntu-latest
     needs: build-and-push
     steps:
+      # 🔹 Desplegar backend en Azure
       - name: Deploy Backend (Node.js) to Azure Web App
         id: deploy-backend
         uses: azure/webapps-deploy@v2
@@ -71,11 +80,12 @@ jobs:
           publish-profile: ${{ secrets.AZURE_APP_PUBLISH_PROFILE_NODE }}
           images: 'bounsiccontainerregistery.azurecr.io/bounsic-front-node:${{ github.sha }}'
 
+      # 🔹 Desplegar frontend en Azure
       - name: Deploy Frontend (Nginx) to Azure Web App
         id: deploy-frontend
         uses: azure/webapps-deploy@v2
         with:
           app-name: 'bounsic-front-nginx'
           slot-name: 'production'
-          publish-profile: ${{ secrets.AZUREAPPSERVICE_PUBLISHPROFILE_40660E4ACB984F97B4E7395743AE5A79 }}
+          publish-profile: ${{ secrets.AZUREAPPSERVICE_PUBLISHPROFILE }}
           images: 'bounsiccontainerregistery.azurecr.io/bounsic-front-nginx:${{ github.sha }}'
