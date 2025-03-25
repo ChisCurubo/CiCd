@@ -6,8 +6,9 @@ WORKDIR /app
 
 # Copia los archivos del servidor
 COPY dist/bounsic-front/server /app
-COPY package.json /app
-COPY bun.lock /app
+COPY ./bounsic-front/package.json /app
+COPY ./bounsic-front/bun.lock /app
+
 
 # Instala las dependencias usando Bun
 RUN bun install
