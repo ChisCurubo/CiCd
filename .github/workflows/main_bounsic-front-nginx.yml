@@ -13,6 +13,25 @@ jobs:
       - name: Checkout code
         uses: actions/checkout@v3
 
+      - name: Install Bun
+        run: |
+          curl -fsSL https://bun.sh/install | bash
+          echo 'export BUN_INSTALL="$HOME/.bun"' >> $GITHUB_ENV
+          echo 'export PATH="$BUN_INSTALL/bin:$PATH"' >> $GITHUB_ENV
+        shell: bash
+
+      - name: Install dependencies and build frontend
+        run: |
+          bun install
+          bun run build
+        working-directory: ./bounsic-front
+
+      - name: Verify build output
+        run: ls -R ./bounsic-front/dist
+
+      - name: Verify bun.lock file
+        run: ls -l ./bounsic-front/bun.lock || echo "bun.lock no encontrado"
+        
       - name: Set up Docker Buildx
         uses: docker/setup-buildx-action@v2
 
@@ -26,7 +45,7 @@ jobs:
       - name: Build and push backend (Node.js) image
         uses: docker/build-push-action@v3
         with:
-          context: .
+          context: ./bounsic-front  # 🔹 Asegura que usa la carpeta correcta
           file: ./bounsic-front/Dockerfile.node
           push: true
           tags: bounsiccontainerregistery.azurecr.io/bounsic-front-node:${{ github.sha }}
@@ -34,7 +53,7 @@ jobs:
       - name: Build and push frontend (Nginx) image
         uses: docker/build-push-action@v3
         with:
-          context: .
+          context: ./bounsic-front  # 🔹 Asegura que usa la carpeta correcta
           file: ./bounsic-front/Dockerfile.nginx
           push: true
           tags: bounsiccontainerregistery.azurecr.io/bounsic-front-nginx:${{ github.sha }}
